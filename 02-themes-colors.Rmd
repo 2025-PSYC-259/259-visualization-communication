@@ -1,0 +1,51 @@
+---
+title: "Themes and colors"
+author: "John Franchak"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+library(tidyverse)
+library(knitr)
+library(here)
+library(patchwork)
+ds  <-  read_csv(here("data_cleaned","cleaned.csv"))
+ds <- ds %>% mutate(across(all_of(c("stim", "age_group", "watched")), as_factor))
+ds$age <- ds$age / 365.25
+```
+
+### Changing colors 
+
+The default colors in ggplot are fine, but often you might need more control over the colors. Let's compare graphing the same data with and without including the "adult" group. Note a couple of useful cosemtic things in this example. First, I'm saving each plot to a variable (`p1`, `p2`) and then using the `patchwork` package (loaded above) to plot them side by side by adding them `p1 + p2`. Second, to make a bit more room for the plots I'm changing the location of the legend with `theme(legend.position = "bottom")`.
+
+```{r}
+p1 <- ds %>% ggplot(aes(x = age, y = AUC_dist, color = age_group)) + 
+  geom_point() + 
+  theme(legend.position = "bottom")
+
+p2 <- filter(ds, age_group != "adult") %>% ggplot(aes(x = age, y = AUC_dist, color = age_group)) + 
+  geom_point() + 
+  theme(legend.position = "bottom")
+p1 + p2
+```
+
+What's wrong here? We wanted to focus in to look at just infant/child data, but now our colors are mapped inconsistently. In ggplot, using the function `scale_SOMETHING_SOMEWAY` gives you precise control over an aesthetic mapping, including your axes, `scale_x_manual`, colors `scale_color_manual`, and shape `scale_shape_manual`. This is also a good place to rename the factor (so that it says Group instead of age_group). But first, if we want to make sure we use the same colors in our two graphs, we should first create a list of colors. A list of colors can simply be a character vector of hex color codes such as:
+
+```{r}
+custom_palette <- c("#999999", "#E69F00", "#56B4E9", "#009E73","#F0E442", "#0072B2", "#D55E00")
+```
+
+By passing custom_palette to the values argument of scale_color_manual, we can set the colors that will be used. Specifying `custome_palette[-1]` in the second graph skips the color for the age group that we omitted.
+
+```{r}
+p1 <- ds %>% ggplot(aes(x = age, y = AUC_dist, color = age_group)) + 
+  geom_point() + 
+  scale_color_manual(values = custom_palette, name = "Group") +
+  theme(legend.position = "bottom")
+
+p2 <- filter(ds, age_group != "adult") %>% ggplot(aes(x = age, y = AUC_dist, color = age_group)) + 
+  geom_point() + 
+  scale_color_manual(values = custom_palette[-1], name = "Group") +
+  theme(legend.position = "bottom")
+p1 + p2
+```

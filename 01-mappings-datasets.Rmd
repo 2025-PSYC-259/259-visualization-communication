@@ -1,0 +1,121 @@
+---
+title: "Mappings and datasets"
+author: "John Franchak"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+library(tidyverse)
+library(knitr)
+library(here)
+ds  <-  read_csv(here("data_cleaned","cleaned.csv"))
+ds <- ds %>% mutate(across(all_of(c("stim", "age_group", "watched")), as_factor))
+ds$age <- ds$age / 365.25
+```
+
+### Multiple mappings
+
+The graphs we've made so far have only mapped x and y. The `aes()` commands in ggplot lets us map multiple aesthetics:
+```{r}
+ds %>% 
+  ggplot(aes(x = age, y = AUC_dist, shape = stim, color = age_group)) + 
+  geom_point()
+```
+
+Try swapping things between mapped aesthetics and facets to find your best arrangement:
+```{r}
+ds %>% ggplot(aes(x = age, y = AUC_dist, color = age_group)) + 
+  geom_point() + 
+  facet_wrap("stim")
+```
+
+Plotting individual data can be a challenge if you have a lot of overlapping data. `geom_point` doesn't quite cut it:
+```{r}
+ds_long <- pivot_longer(ds, cols=c("AUC_sal", "AUC_dist"), names_to = "model", values_to = "AUC")
+ds_long %>% 
+  ggplot(aes(x = model, y = AUC, color = log(age))) + 
+  geom_point() + 
+  facet_wrap("stim")
+```
+
+Instead, try `geom_jitter` from *ggplot2* or `geom_sina` from the *ggforce* package. Jitter is effective, but doesn't make the distribution clear. `geom_sina` is basically the raw data as a violin plot to make comparisons of relative density more apparent.
+```{r}
+library(ggforce)
+ds_long %>% 
+  ggplot(aes(x = model, y = AUC, color = log(age))) + 
+  geom_jitter() + 
+  facet_wrap("stim")
+
+ds_long %>% 
+  ggplot(aes(x = model, y = AUC, color = log(age))) + 
+  geom_sina() + 
+  facet_wrap("stim")
+
+```
+
+### Using multiple data sets in a plot
+
+Graphing individual data is better than just showing a bar, but shouldn't we have both summary and raw data? One way to do this is to create a summary data set and use two data sets mapped to different geoms. It looked too busy with a black bar over blue to black points, so I went with semi-transparent (use `alpha`) gray points with a black bar. `ggplot` calls layer geoms in order, so whatever you want in the foreground should be last in the call.
+
+```{r}
+ds_long_summary <- ds_long %>% 
+  group_by(model, stim) %>% 
+  summarize(mean_auc = mean(AUC, na.rm = T)) %>% 
+  ungroup()
+
+ggplot() + 
+  geom_sina(data = ds_long, aes(x = model, y = AUC), color = "gray", alpha = .7) + 
+  geom_point(data = ds_long_summary, aes(x = model, y = mean_auc), shape = "—", size = 10) +
+  facet_wrap("stim") + theme_minimal()
+```
+
+If it's too much with the raw data, you could of course just plot means and SEs. Error bars require a ymin and ymax aestetic. They don't, however, plot the mean, so you can layer a `geom_point` on top to make the mean clear. 
+
+```{r, warning=FALSE, message=FALSE}
+ds_long_error_bar <- ds_long %>% 
+  group_by(model, stim) %>% 
+  summarize(
+    mean_auc = mean(AUC, na.rm = T), 
+    sd_auc = sd(AUC, na.rm = T), 
+    se_auc = sd_auc/sqrt(n()),
+    ymin = mean_auc - se_auc,
+    ymax = mean_auc + se_auc) %>% ungroup()
+
+ggplot(data = ds_long_error_bar, aes(x = stim, y = mean_auc, ymin = ymin, ymax = ymax, color = model)) + 
+  geom_errorbar(size = 1.25) +
+  geom_point(size = 5)+
+  theme_minimal()
+```
+
+Don't like having your points/error bars overlapping? Use `position = position_dodge()` to manually jitter points so that the data are easier to view:
+```{r}
+ggplot(data = ds_long_error_bar, aes(x = stim, y = mean_auc, ymin = ymin, ymax = ymax, color = model)) + 
+  geom_errorbar(size = 1.25, position = position_dodge(.2)) +
+  geom_point(size = 5, position = position_dodge(.2))+
+  theme_minimal()
+```
+
+
+### Using stat_summary 
+
+But this is a statistics programming language! Do we really *need* to calculate the upper and lower bounds of the error bars manually? No, but I think it's helpful to know how to manually map each part of a geom. Some solutions won't have a shortcut, so knowing exactly how to summarize your data or pull from multiple datasets helps you to understand what makes a graph. But if you want to write a cleaner mean and error bar summary, try `stat_summary`:
+
+```{r}
+ds_long %>% drop_na(AUC) %>% ggplot(aes(x = stim, y = AUC, color = model)) + 
+  stat_summary(fun.data = mean_se, geom = "pointrange", size = 1.25, position = position_dodge(.2)) +
+  theme_minimal()
+
+ds_long %>% drop_na(AUC) %>% ggplot(aes(x = stim, y = AUC, color = model)) + 
+  stat_summary(fun.data = mean_se, geom = "point", size = 5, position = position_dodge(.2)) +
+  stat_summary(fun.data = mean_se, geom = "errorbar", size = 1.25, position = position_dodge(.2)) +
+  theme_minimal()
+```
+
+Finally, with `stat_summary` we can pass one data set and get our raw and summary data on the same plot. The raw data are plotted with `geom_sina`, and `stat_summary` overlays the mean and se over the top.
+```{r}
+ds_long %>% drop_na(AUC) %>% ggplot(aes(x = stim, y = AUC, fill = model)) + 
+  geom_sina(alpha = .6, shape = 21, color = "white") + 
+  stat_summary(fun.data = "mean_se", geom = "pointrange", size = .75, color = "black", shape = 23, position = position_dodge(.9)) +
+  theme_minimal()
+```
+
