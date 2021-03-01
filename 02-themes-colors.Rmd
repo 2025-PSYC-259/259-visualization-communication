@@ -1,5 +1,5 @@
 ---
-title: "Themes and colors"
+title: "Colors and themes"
 author: "John Franchak"
 output: html_document
 ---
@@ -29,7 +29,9 @@ p2 <- filter(ds, age_group != "adult") %>% ggplot(aes(x = age, y = AUC_dist, col
 p1 + p2
 ```
 
-What's wrong here? We wanted to focus in to look at just infant/child data, but now our colors are mapped inconsistently. In ggplot, using the function `scale_SOMETHING_SOMEWAY` gives you precise control over an aesthetic mapping, including your axes, `scale_x_manual`, colors `scale_color_manual`, and shape `scale_shape_manual`. This is also a good place to rename the factor (so that it says Group instead of age_group). But first, if we want to make sure we use the same colors in our two graphs, we should first create a list of colors. A list of colors can simply be a character vector of hex color codes such as:
+What's wrong here? We wanted to focus in to look at just infant/child data, but now our colors are mapped inconsistently. In ggplot, using the function `scale_SOMETHING_SOMEWAY` gives you precise control over an aesthetic mapping, including your axes, `scale_x_manual`, colors `scale_color_manual`, and shape `scale_shape_manual`. See <https://ggplot2tor.com/scales/> for a list of things that can be scaled. 
+
+The `scale_color_manual` command is also good place to rename the factor (so that it says "Group" instead of "age_group"). But first, if we want to make sure we use the same colors in our two graphs, we should first create a list of colors. A list of colors can simply be a character vector of hex color codes such as:
 
 ```{r}
 custom_palette <- c("#999999", "#E69F00", "#56B4E9", "#009E73","#F0E442", "#0072B2", "#D55E00")
@@ -49,3 +51,95 @@ p2 <- filter(ds, age_group != "adult") %>% ggplot(aes(x = age, y = AUC_dist, col
   theme(legend.position = "bottom")
 p1 + p2
 ```
+
+Does this seem a bit hacky and hard-coded? What if you want to exclude a different group? Or what if you reordered the factor levels for one plot? A better way to set the colors is to create a named vector using the factor labels.
+
+```{r}
+age_groups <- unique(ds$age_group) 
+custom_palette <- c("#999999", "#E69F00", "#56B4E9", "#009E73","#F0E442", "#0072B2", "#D55E00") %>% set_names(age_groups)
+```
+
+Now that we've named the colors to correspond to the factor levels, we don't need to adjust custom_palette each time. Yet another use of named vectors/lists.
+
+```{r}
+p1 <- filter(ds, age_group %in% c("8-10 y","adult")) %>% ggplot(aes(x = age, y = AUC_dist, color = age_group)) + 
+  geom_point() + 
+  scale_color_manual(values = custom_palette, name = "Group") +
+  theme(legend.position = "bottom")
+
+p2 <- filter(ds, age_group != "adult") %>% ggplot(aes(x = age, y = AUC_dist, color = age_group)) + 
+  geom_point() + 
+  scale_color_manual(values = custom_palette, name = "Group") +
+  theme(legend.position = "bottom")
+p1 + p2
+```
+
+### Making your plots accessible
+
+The default color palette in ggplot is not color-blind friendly. If you want to use color in your graphs, it's good to check how they may look to people who have different types of colorblindness (as well as how your figure may print in grayscale). The `colorblindr` package can help you with this. It's a beta package that needs to be installed from github.
+
+```{r, message = FALSE, warning = FALSE}
+## TO INSTALL:
+# remotes::install_github("wilkelab/cowplot")
+# install.packages("colorspace", repos = "http://R-Forge.R-project.org")
+# remotes::install_github("clauswilke/colorblindr")
+
+library(colorblindr)
+
+#Default colors
+p1 <- ds %>% ggplot(aes(x = stim, y = AUC_dist, color = age_group)) + 
+  stat_summary(position = position_dodge(.2)) + 
+  theme(legend.position = "bottom")
+p1 
+cvd_grid(p1)
+```
+
+Instead, let's use a color blind friendly palette. There's one bundled in the colorblindr package `palette_OkabeIto`, but you can also find hex codes from <http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette> and other websites. 
+
+```{r, message = FALSE, warning = FALSE}
+p2 <- ds %>% ggplot(aes(x = stim, y = AUC_dist, color = age_group)) + 
+  stat_summary(position = position_dodge(.2)) + 
+  scale_color_manual(values = palette_OkabeIto, name = "Group") +
+  theme(legend.position = "bottom")
+p2
+
+cvd_grid(p2)
+```
+
+### Changing theme elements
+
+The `theme` command lets you make changes to every imaginable aspect of your plot. The difference between theme and scale is that theme is for changing aspects of the graph that aren't mapped to an aesthetic, whereas scale refers to the elements that appear in an `aes()` statement. Let's run `?theme` to see the list of possible things to change.
+
+It's a lot! I personally am a fan of plain white backgrounds, larger font sizes, bolder ticks, and (often) removing the axes lines. You can probably figure out what most of this means if you go through piece by piece. `element_blank()` means delete that element from the theme. The rest of it is setting font sizes, line styles, and making the background white:
+
+```{r}
+my_theme <- theme(text = element_text(size = 16),
+             axis.text.x = element_text(size = 16, color = "black"), axis.title.x = element_text(size = 21),
+             axis.text.y = element_text(size = 16, color = "black"), axis.title.y = element_text(size = 21),
+             panel.background = element_blank(),panel.border = element_blank(), panel.grid.major = element_blank(),
+             panel.grid.minor = element_blank(), axis.line = element_line(colour = "white"), 
+             axis.ticks.length = unit(.25, "cm"), axis.ticks = element_line(size = 1, lineend = "round"),
+             legend.key = element_rect(fill = "white")) 
+```
+
+Notice that I saved all of that to a variable, `my_theme`. If you have things you want to add to a plot that are repetitive and take up a lot of space, just assign them to a variable. That variable can stand in for the long list in the ggplot call:
+
+```{r}
+ds %>% ggplot(aes(x = age, y = AUC_dist, color = age_group)) + 
+  geom_point() + 
+  scale_color_manual(values = custom_palette, name = "Group") +
+  xlab("Age (years)") + ylab("Distance model AUC") + 
+  my_theme
+```
+
+If you want to make those changes permanent for your R session and apply to every graph, you can use `theme_update` and run it at the top of your script. I'm not running it here so that it won't disrupt my examples, but this is more efficient than adding redundant `theme()` calls to each plot.
+```{r, eval = FALSE}
+theme_update(text = element_text(size = 16),
+             axis.text.x = element_text(size = 16, color = "black"), axis.title.x = element_text(size = 21),
+             axis.text.y = element_text(size = 16, color = "black"), axis.title.y = element_text(size = 21),
+             panel.background = element_blank(),panel.border = element_blank(), panel.grid.major = element_blank(),
+             panel.grid.minor = element_blank(), axis.line = element_line(colour = "white"), 
+             axis.ticks.length = unit(.25, "cm"), axis.ticks = element_line(size = 1, lineend = "round"),
+             legend.key = element_rect(fill = "white")) 
+```
+
