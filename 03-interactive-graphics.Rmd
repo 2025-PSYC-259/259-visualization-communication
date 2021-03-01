@@ -1,5 +1,5 @@
 ---
-title: "Colors and themes"
+title: "Interactive graphics"
 author: "John Franchak"
 output: html_document
 ---
