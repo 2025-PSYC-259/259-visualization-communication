@@ -42,6 +42,7 @@ Another way to extend ggplot is using the `gganimate` package. By default, the a
 
 ```{r, cache = TRUE, message = FALSE, warning= FALSE}
 library(gganimate)
+library(gifski)
 
 ds %>% ggplot(aes(x = age, y = AUC_dist, color = age_group, group = id)) + 
   geom_point() + 
