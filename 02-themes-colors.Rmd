@@ -6,7 +6,6 @@ output: html_document
 
 ```{r setup, include = FALSE}
 library(tidyverse)
-library(knitr)
 library(here)
 library(patchwork)
 ds  <-  read_csv(here("data_cleaned","cleaned.csv"))

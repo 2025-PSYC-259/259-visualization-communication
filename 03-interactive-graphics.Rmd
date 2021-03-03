@@ -6,9 +6,7 @@ output: html_document
 
 ```{r setup, include = FALSE}
 library(tidyverse)
-library(knitr)
 library(here)
-library(patchwork)
 ds  <-  read_csv(here("data_cleaned","cleaned.csv"))
 ds <- ds %>% mutate(across(all_of(c("stim", "age_group", "watched")), as_factor))
 ds$age <- ds$age / 365.25
@@ -28,7 +26,7 @@ custom_palette <- c("#999999", "#E69F00", "#56B4E9", "#009E73","#F0E442", "#0072
 
 Sometimes it's nice (especially for EDA), to have plots that are scrollable and zoomable. The `plotly` package allows you to do this. Plotly is its own thing <https://plotly.com/r/> and is meant for making customized dashboards and interactive web graphics. There's much, much more it can do. It also works in Python. We don't really need to learn how plotly works to get a basic plot, because the `ggplotly` command will can convert a ggplot into a plotly plot. 
 
-```{r}
+```{r, message = FALSE}
 library(plotly)
 p1 <- ds %>% ggplot(aes(x = age, y = AUC_dist, color = age_group)) + 
   geom_point() + 

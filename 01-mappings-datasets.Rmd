@@ -87,11 +87,11 @@ ggplot(data = ds_long_error_bar, aes(x = stim, y = mean_auc, ymin = ymin, ymax =
   theme_minimal()
 ```
 
-Don't like having your points/error bars overlapping? Use `position = position_dodge()` to manually jitter points so that the data are easier to view:
+Don't like having your points/error bars overlapping? Use `position = position_dodge()` to manually jitter points so that the data are easier to view. 
 ```{r}
 ggplot(data = ds_long_error_bar, aes(x = stim, y = mean_auc, ymin = ymin, ymax = ymax, color = model)) + 
   geom_errorbar(size = 1.25, position = position_dodge(.2)) +
-  geom_point(size = 5, position = position_dodge(.2))+
+  geom_point(size = 5, position = position_dodge(.2)) +
   theme_minimal()
 ```
 
