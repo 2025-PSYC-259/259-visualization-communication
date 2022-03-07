@@ -75,34 +75,29 @@ p1 + p2
 
 ### Making your plots accessible
 
-The default color palette in ggplot is not color-blind friendly. If you want to use color in your graphs, it's good to check how they may look to people who have different types of colorblindness (as well as how your figure may print in grayscale). The `colorblindr` package can help you with this. It's a beta package that needs to be installed from github.
+The default color palette in ggplot is not colorblind friendly. If you want to use color in your graphs, it's good to check how they may look to people who have different types of colorblindness (as well as how your figure may print in grayscale). The `colorblindcheck` package can help you with this by plotting what a color palette looks like to different kinds of colorblindness.
 
 ```{r, message = FALSE, warning = FALSE}
-## TO INSTALL:
-# remotes::install_github("wilkelab/cowplot")
-# install.packages("colorspace", repos = "http://R-Forge.R-project.org")
-# remotes::install_github("clauswilke/colorblindr")
-
-library(colorblindr)
-
 #Default colors
-p1 <- ds %>% ggplot(aes(x = stim, y = AUC_dist, color = age_group)) + 
+ds %>% ggplot(aes(x = stim, y = AUC_dist, color = age_group)) + 
   stat_summary(position = position_dodge(.2)) + 
   theme(legend.position = "bottom")
-p1 
-cvd_grid(p1)
+
+library(colorblindcheck)
+default_palette <- scales::hue_pal()(7) #Using this to get the default colors
+palette_plot(default_palette)
 ```
 
-Instead, let's use a color blind friendly palette. There's one bundled in the colorblindr package `palette_OkabeIto`, but you can also find hex codes from <http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette> and other websites. 
+Instead, let's use a color blind friendly palette. You can find hex codes from <http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette> and other websites. 
 
 ```{r, message = FALSE, warning = FALSE}
-p2 <- ds %>% ggplot(aes(x = stim, y = AUC_dist, color = age_group)) + 
+cb_palette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+ds %>% ggplot(aes(x = stim, y = AUC_dist, color = age_group)) + 
   stat_summary(position = position_dodge(.2)) + 
-  scale_color_manual(values = palette_OkabeIto, name = "Group") +
+  scale_color_manual(values = cb_palette, name = "Group") +
   theme(legend.position = "bottom")
-p2
 
-cvd_grid(p2)
+palette_plot(cb_palette)
 ```
 
 ### Changing theme elements

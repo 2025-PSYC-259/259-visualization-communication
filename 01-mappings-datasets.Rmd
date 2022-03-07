@@ -15,7 +15,7 @@ ds$age <- ds$age / 365.25
 
 ### Multiple mappings
 
-The graphs we've made so far have only mapped x and y. The `aes()` commands in ggplot lets us map multiple aesthetics:
+As we saw in the last graphing class, `aes()` commands in ggplot lets us map multiple aesthetics:
 ```{r}
 ds %>% 
   ggplot(aes(x = age, y = AUC_dist, shape = stim, color = age_group)) + 
@@ -57,7 +57,7 @@ ds_long %>%
 
 Graphing individual data is better than just showing a bar, but shouldn't we have both summary and raw data? One way to do this is to create a summary data set and use two data sets mapped to different geoms. It looked too busy with a black bar over blue to black points, so I went with semi-transparent (use `alpha`) gray points with a black bar. `ggplot` calls layer geoms in order, so whatever you want in the foreground should be last in the call.
 
-```{r}
+```{r, warning=F, message=F}
 ds_long_summary <- ds_long %>% 
   group_by(model, stim) %>% 
   summarize(mean_auc = mean(AUC, na.rm = T)) %>% 
