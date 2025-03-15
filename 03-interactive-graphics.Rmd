@@ -38,7 +38,7 @@ ggplotly(p1)
 
 ### Animated plots
 
-Another way to extend ggplot is using the `gganimate` package. By default, the animations render as .gif which makes them embeddable in an html presentation and shareable online. You can get fancy and render them as video files to put in presentations. I'm scratching the surface here, but the easiest thing to do is map a discrete factor to `transition_states` and you will get an animation that is split by that factor. It's pretty much like `facet_wrap`, but uses time instead of space. Putting `"{closest_state}"` into the title will label the level of the factor in the animation so that you know what you're looking at. 
+Another way to extend ggplot is using the `gganimate` package. By default, the animations render as .gif which makes them embedd-able in an html presentation and share-able online. You can get fancy and render them as video files to put in presentations. I'm scratching the surface here, but the easiest thing to do is map a discrete factor to `transition_states` and you will get an animation that is split by that factor. It's pretty much like `facet_wrap`, but uses time instead of space. Putting `"{closest_state}"` into the title will label the level of the factor in the animation so that you know what you're looking at. 
 
 ```{r, cache = TRUE, message = FALSE, warning= FALSE}
 library(gganimate)

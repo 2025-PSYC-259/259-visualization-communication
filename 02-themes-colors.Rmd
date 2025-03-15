@@ -15,7 +15,7 @@ ds$age <- ds$age / 365.25
 
 ### Changing colors 
 
-The default colors in ggplot are fine, but often you might need more control over the colors. Let's compare graphing the same data with and without including the "adult" group. Note a couple of useful cosemtic things in this example. First, I'm saving each plot to a variable (`p1`, `p2`) and then using the `patchwork` package (loaded above) to plot them side by side by adding them `p1 + p2`. Second, to make a bit more room for the plots I'm changing the location of the legend with `theme(legend.position = "bottom")`.
+The default colors in ggplot are fine, but often you might need more control over the colors. Let's compare graphing the same data with and without including the "adult" group. Note a couple of useful cosmetic things in this example. First, I'm saving each plot to a variable (`p1`, `p2`) and then using the `patchwork` package (loaded above) to plot them side by side by adding them `p1 + p2`. Second, to make a bit more room for the plots I'm changing the location of the legend with `theme(legend.position = "bottom")`.
 
 ```{r}
 p1 <- ds %>% ggplot(aes(x = age, y = AUC_dist, color = age_group)) + 
