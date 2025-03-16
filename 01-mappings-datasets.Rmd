@@ -33,7 +33,7 @@ Plotting individual data can be a challenge if you have a lot of overlapping dat
 ```{r}
 ds_long <- pivot_longer(ds, cols=c("AUC_sal", "AUC_dist"), names_to = "model", values_to = "AUC")
 ds_long %>% 
-  ggplot(aes(x = model, y = AUC, color = log(age))) + 
+  ggplot(aes(x = model, y = AUC, color = age_group)) + 
   geom_point() + 
   facet_wrap("stim")
 ```
@@ -42,14 +42,34 @@ Instead, try `geom_jitter` from *ggplot2* or `geom_sina` from the *ggforce* pack
 ```{r}
 library(ggforce)
 ds_long %>% 
-  ggplot(aes(x = model, y = AUC, color = log(age))) + 
-  geom_jitter() + 
+  ggplot(aes(x = model, y = AUC, color = age_group)) + 
+  geom_jitter(width = 0, height=0) + 
   facet_wrap("stim")
 
 ds_long %>% 
-  ggplot(aes(x = model, y = AUC, color = log(age))) + 
+  ggplot(aes(x = model, y = AUC, color = age_group)) + 
+  geom_jitter(width = 0.25, height=0) + 
+  facet_wrap("stim")
+
+ds_long %>% 
+  ggplot(aes(x = model, y = AUC, color = age_group)) + 
+  geom_jitter(width = 0.25, height=0.25) + 
+  facet_wrap("stim")
+
+ds_long %>% 
+  ggplot(aes(x = model, y = AUC, color = age_group)) + 
+  geom_jitter() + 
+  facet_wrap("stim")
+
+# If omitted, defaults to 40% of the resolution of the data: this means the jitter 
+#values will occupy 80% of the implied bins. 
+
+ds_long %>% 
+  ggplot(aes(x = model, y = AUC, color = age_group)) + 
   geom_sina() + 
   facet_wrap("stim")
+ #width of the jitter is controlled by the density distribution of the data within 
+# each class.
 
 ```
 
@@ -117,5 +137,8 @@ ds_long %>% drop_na(AUC) %>% ggplot(aes(x = stim, y = AUC, fill = model)) +
   geom_sina(alpha = .6, shape = 21, color = "white") + 
   stat_summary(fun.data = "mean_se", geom = "pointrange", size = .75, color = "black", shape = 23, position = position_dodge(.9)) +
   theme_minimal()
+
+# shape 23 = type of shape we want to use
+# https://www.sthda.com/english/wiki/ggplot2-point-shapes
 ```
 

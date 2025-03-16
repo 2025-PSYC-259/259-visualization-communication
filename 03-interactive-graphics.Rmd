@@ -49,5 +49,12 @@ ds %>% ggplot(aes(x = age, y = AUC_dist, color = age_group, group = id)) +
   transition_states(stim) + 
   ggtitle("{closest_state}") + 
   scale_color_manual(values = custom_palette)
+
+# could use a different variable as transition state
+ds %>% ggplot(aes(x = age, y = AUC_dist, color = age_group, group = id)) + 
+  geom_point() + 
+  transition_states(age_group) + 
+  ggtitle("{closest_state}") + 
+  scale_color_manual(values = custom_palette)
 ```
 

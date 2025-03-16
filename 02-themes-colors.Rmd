@@ -56,6 +56,7 @@ Does this seem a bit hacky and hard-coded? What if you want to exclude a differe
 ```{r}
 age_groups <- unique(ds$age_group) 
 custom_palette <- c("#999999", "#E69F00", "#56B4E9", "#009E73","#F0E442", "#0072B2", "#D55E00") %>% set_names(age_groups)
+custom_palette # see these are named now
 ```
 
 Now that we've named the colors to correspond to the factor levels, we don't need to adjust custom_palette each time. Yet another use of named vectors/lists.
@@ -84,8 +85,10 @@ ds %>% ggplot(aes(x = stim, y = AUC_dist, color = age_group)) +
   theme(legend.position = "bottom")
 
 library(colorblindcheck)
+palette_plot(custom_palette)
 default_palette <- scales::hue_pal()(7) #Using this to get the default colors
 palette_plot(default_palette)
+
 ```
 
 Instead, let's use a color blind friendly palette. You can find hex codes from <http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette> and other websites. 
@@ -104,16 +107,29 @@ palette_plot(cb_palette)
 
 The `theme` command lets you make changes to every imaginable aspect of your plot. The difference between theme and scale is that theme is for changing aspects of the graph that aren't mapped to an aesthetic, whereas scale refers to the elements that appear in an `aes()` statement. Let's run `?theme` to see the list of possible things to change.
 
+```{r}
+?theme
+```
+
+
 It's a lot! I personally am a fan of plain white backgrounds, larger font sizes, bolder ticks, and (often) removing the axes lines. You can probably figure out what most of this means if you go through piece by piece. `element_blank()` means delete that element from the theme. The rest of it is setting font sizes, line styles, and making the background white:
 
 ```{r}
-my_theme <- theme(text = element_text(size = 16),
-             axis.text.x = element_text(size = 16, color = "black"), axis.title.x = element_text(size = 21),
-             axis.text.y = element_text(size = 16, color = "black"), axis.title.y = element_text(size = 21),
-             panel.background = element_blank(),panel.border = element_blank(), panel.grid.major = element_blank(),
-             panel.grid.minor = element_blank(), axis.line = element_line(colour = "white"), 
-             axis.ticks.length = unit(.25, "cm"), axis.ticks = element_line(size = 1, lineend = "round"),
-             legend.key = element_rect(fill = "white")) 
+my_theme <- theme(
+  text = element_text(size = 16),
+  axis.text.x = element_text(size = 16, color = "black"),
+  axis.title.x = element_text(size = 21),
+  axis.text.y = element_text(size = 16, color = "black"),
+  axis.title.y = element_text(size = 21),
+  panel.background = element_blank(),
+  panel.border = element_blank(),
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(),
+  axis.line = element_line(colour = "white", linewidth = 1),
+  axis.ticks.length = unit(.25, "cm"),
+  axis.ticks = element_line(linewidth = 1, lineend = "round"),  
+  legend.key = element_rect(fill = "white")
+)
 ```
 
 Notice that I saved all of that to a variable, `my_theme`. If you have things you want to add to a plot that are repetitive and take up a lot of space, just assign them to a variable. That variable can stand in for the long list in the ggplot call:
